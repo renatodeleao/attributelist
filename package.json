@@ -1,0 +1,15 @@
+{
+  "name": "attributelist",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel site/index.html -p 8080",
+    "build": "parcel build site/index.js"
+  },
+  "repository": "git@github.com:renatodeleao/attributelist.git",
+  "author": "Renato de Leão <renatodeleao@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "parcel-bundler": "^1.3.0"
+  }
+}
