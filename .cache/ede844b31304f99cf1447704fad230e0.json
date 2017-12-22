@@ -1,1 +1,1 @@
-{"dependencies":[],"generated":{"js":"console.log(\"hello world\");\n"},"hash":"1a580780536db9763768d7a75bae1d9d"}
+{"dependencies":[{"name":"../lib/index.js","loc":{"line":3,"column":18}}],"generated":{"js":"\"use strict\";\n\nvar _index = require(\"../lib/index.js\");\n\nconsole.log(\"hello world\");\n\nwindow.$al = _index.$al;"},"hash":"30456ca9d334f9398c865d1d9696843c"}
