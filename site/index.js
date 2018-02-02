@@ -3,8 +3,8 @@ console.log("hello world");
 import {AttributeList, $attributeList, dangerouslyExtendElementPrototypeWithAttributeList as polyfill} from '../lib/index.js';
 window.$al = $attributeList;
 
-
 polyfill();
+
 function toggleClass(){
   console.log('toggled');
 }

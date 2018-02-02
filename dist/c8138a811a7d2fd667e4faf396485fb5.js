@@ -169,10 +169,12 @@ function $attributeList(el) {
   let al = getAttributes(el);
   let alObj = {};
 
-  al.forEach(attr => {
-    let camelCased = toCamelCase(attr.replace("data-", ""));
-    alObj[camelCased] = new AttributeList(_el, attr);
-  });
+  if (al.length > 0) {
+    al.forEach(attr => {
+      let camelCased = toCamelCase(attr.replace("data-", ""));
+      alObj[camelCased] = new AttributeList(_el, attr);
+    });
+  }
 
   return alObj;
 }
@@ -191,22 +193,26 @@ function dangerouslyExtendElementPrototypeWithAttributeList() {
     Object.defineProperty(Element.prototype, "attributeList", {
       get: function () {
         let al = getAttributes(this);
-        al.forEach(attr => {
-          let camelCased = toCamelCase(attr.replace("data-", ""));
-          Object.defineProperty(this, "attributeList", {
-            value: {
-              [attr]: new AttributeList(this, attr)
-            }
+        let alObj = {};
+
+        if (al.length > 0) {
+          al.forEach(attr => {
+            let camelCased = toCamelCase(attr.replace("data-", ""));
+            alObj[camelCased] = new AttributeList(this, attr);
           });
-          return this.attributeList;
+        }
+
+        Object.defineProperty(this, "attributeList", {
+          value: alObj
         });
+        return this.attributeList;
       },
       configurable: true,
-      writeable: true
+      writeable: false
     });
   }
 }
-},{}],2:[function(require,module,exports) {
+},{}],3:[function(require,module,exports) {
 'use strict';
 
 var _index = require('../lib/index.js');
@@ -216,6 +222,7 @@ console.log("hello world");
 window.$al = _index.$attributeList;
 
 (0, _index.dangerouslyExtendElementPrototypeWithAttributeList)();
+
 function toggleClass() {
     console.log('toggled');
 }
@@ -243,7 +250,7 @@ var observer = new MutationObserver(callback);
 
 // Start observing the target node for configured mutations
 observer.observe(targetNode, config);
-},{"../lib/index.js":5}],10:[function(require,module,exports) {
+},{"../lib/index.js":5}],7:[function(require,module,exports) {
 
 var global = (1, eval)('this');
 var OldModule = module.bundle.Module;
@@ -263,7 +270,7 @@ module.bundle.Module = Module;
 
 if (!module.bundle.parent && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
-  var ws = new WebSocket('ws://' + hostname + ':' + '51215' + '/');
+  var ws = new WebSocket('ws://' + hostname + ':' + '55371' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -364,5 +371,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.require, id);
   });
 }
-},{}]},{},[10,2])
+},{}]},{},[7,3])
 //# sourceMappingURL=/dist/c8138a811a7d2fd667e4faf396485fb5.map
