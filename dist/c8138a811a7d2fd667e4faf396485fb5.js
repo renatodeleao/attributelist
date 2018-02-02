@@ -76,7 +76,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.$attributeList = $attributeList;
-exports.dangerouslyExtendElementPrototype = dangerouslyExtendElementPrototype;
+exports.dangerouslyExtendElementPrototypeWithAttributeList = dangerouslyExtendElementPrototypeWithAttributeList;
 /*
  * @name AttributeList
  * @description manipulated attributes with a classList like API
@@ -150,6 +150,10 @@ function toCamelCase(str) {
   return str.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2, offset) => p2 ? p2.toUpperCase() : p1.toLowerCase());
 }
 
+function getAttributes(el) {
+  return el.getAttributeNames().filter(a => a !== "id" && a !== "class");
+}
+
 /*
  * @name $attributeList
  * @description AttributeList Wrapper Mode, se like _loadash or jquery
@@ -162,7 +166,7 @@ function $attributeList(el) {
   if ('undefined' === typeof el) throw new Error("There is no specific sidebar element.");
 
   // todo: should we remove other attributes from manipulation and only leave data-attributes??
-  let al = _el.getAttributeNames().filter(a => a !== "id" && a !== "class");
+  let al = getAttributes(el);
   let alObj = {};
 
   al.forEach(attr => {
@@ -174,7 +178,7 @@ function $attributeList(el) {
 }
 
 /*
- * [DANGEROUS]
+ * [DANGEROUS] USE at your own Risk
  *
  * @function dangerouslyExtendElementPrototype
  *
@@ -182,26 +186,27 @@ function $attributeList(el) {
  * enough javaScript (programming) nerdery to fully
  * understand how bad is what i'm doing here
  */
-function dangerouslyExtendElementPrototype() {
-  Object.defineProperty(Element.prototype, "yolo", {
-    get: function () {
-      let al = this.getAttributeNames();
-      al.forEach(attr => {
-        var camelCased = toCamelCase(attr.replace("data-", ""));
-        Object.defineProperty(this, "yolo", {
-          value: {
-            [attr]: new AttributeList(this, attr)
-          }
+function dangerouslyExtendElementPrototypeWithAttributeList() {
+  if (!Element.prototype.attributeList) {
+    Object.defineProperty(Element.prototype, "attributeList", {
+      get: function () {
+        let al = getAttributes(this);
+        al.forEach(attr => {
+          let camelCased = toCamelCase(attr.replace("data-", ""));
+          Object.defineProperty(this, "attributeList", {
+            value: {
+              [attr]: new AttributeList(this, attr)
+            }
+          });
+          return this.attributeList;
         });
-      });
-
-      return this.yolo;
-    },
-    configurable: true,
-    writeable: false
-  });
+      },
+      configurable: true,
+      writeable: true
+    });
+  }
 }
-},{}],3:[function(require,module,exports) {
+},{}],2:[function(require,module,exports) {
 'use strict';
 
 var _index = require('../lib/index.js');
@@ -210,12 +215,14 @@ console.log("hello world");
 
 window.$al = _index.$attributeList;
 
+(0, _index.dangerouslyExtendElementPrototypeWithAttributeList)();
 function toggleClass() {
     console.log('toggled');
 }
 // Select the node that will be observed for mutations
 var targetNode = document.querySelector('.js-observe');
 
+var instance = new _index.AttributeList(targetNode);
 // Options for the observer (which mutations to observe)
 var config = { attributes: true, childList: true };
 
@@ -236,7 +243,7 @@ var observer = new MutationObserver(callback);
 
 // Start observing the target node for configured mutations
 observer.observe(targetNode, config);
-},{"../lib/index.js":5}],7:[function(require,module,exports) {
+},{"../lib/index.js":5}],10:[function(require,module,exports) {
 
 var global = (1, eval)('this');
 var OldModule = module.bundle.Module;
@@ -256,7 +263,7 @@ module.bundle.Module = Module;
 
 if (!module.bundle.parent && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
-  var ws = new WebSocket('ws://' + hostname + ':' + '58062' + '/');
+  var ws = new WebSocket('ws://' + hostname + ':' + '51215' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -357,5 +364,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.require, id);
   });
 }
-},{}]},{},[7,3])
+},{}]},{},[10,2])
 //# sourceMappingURL=/dist/c8138a811a7d2fd667e4faf396485fb5.map

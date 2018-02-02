@@ -1,15 +1,18 @@
 console.log("hello world");
 
-import {AttributeList, $attributeList, dangerouslyExtendElementPrototype} from '../lib/index.js';
+import {AttributeList, $attributeList, dangerouslyExtendElementPrototypeWithAttributeList as polyfill} from '../lib/index.js';
 window.$al = $attributeList;
 
 
+polyfill();
 function toggleClass(){
   console.log('toggled');
 }
 // Select the node that will be observed for mutations
 var targetNode = document.querySelector('.js-observe');
 
+
+var instance = new AttributeList(targetNode, )
 // Options for the observer (which mutations to observe)
 var config = { attributes: true, childList: true };
 
