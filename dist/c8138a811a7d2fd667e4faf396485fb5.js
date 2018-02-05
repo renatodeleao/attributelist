@@ -69,7 +69,7 @@ require = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({5:[function(require,module,exports) {
+})({9:[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103,8 +103,10 @@ class AttributeList {
   constructor(el, attributeName) {
     this.el = el;
     this.attributeName = attributeName;
-    this.tokenList = this.el.getAttribute(attributeName).split(" ").filter(t => t !== "");
 
+    if (this.el.getAttribute(attributeName) > 0) {
+      this.tokenList = this.el.getAttribute(attributeName).split(" ").filter(t => t !== "");
+    }
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -154,6 +156,19 @@ function getAttributes(el) {
   return el.getAttributeNames().filter(a => a !== "id" && a !== "class");
 }
 
+function mapAttributeToInstance(el, al) {
+  let _alObj = {};
+
+  if (al.length > 0) {
+    al.forEach(attr => {
+      let camelCased = toCamelCase(attr.replace("data-", ""));
+      _alObj[camelCased] = new AttributeList(el, attr);
+    });
+  }
+
+  return _alObj;
+}
+
 /*
  * @name $attributeList
  * @description AttributeList Wrapper Mode, se like _loadash or jquery
@@ -167,14 +182,7 @@ function $attributeList(el) {
 
   // todo: should we remove other attributes from manipulation and only leave data-attributes??
   let al = getAttributes(el);
-  let alObj = {};
-
-  if (al.length > 0) {
-    al.forEach(attr => {
-      let camelCased = toCamelCase(attr.replace("data-", ""));
-      alObj[camelCased] = new AttributeList(_el, attr);
-    });
-  }
+  let alObj = mapAttributeToInstance(el, al);
 
   return alObj;
 }
@@ -193,18 +201,12 @@ function dangerouslyExtendElementPrototypeWithAttributeList() {
     Object.defineProperty(Element.prototype, "attributeList", {
       get: function () {
         let al = getAttributes(this);
-        let alObj = {};
-
-        if (al.length > 0) {
-          al.forEach(attr => {
-            let camelCased = toCamelCase(attr.replace("data-", ""));
-            alObj[camelCased] = new AttributeList(this, attr);
-          });
-        }
+        let alObj = mapAttributeToInstance(this, al);
 
         Object.defineProperty(this, "attributeList", {
           value: alObj
         });
+
         return this.attributeList;
       },
       configurable: true,
@@ -212,7 +214,7 @@ function dangerouslyExtendElementPrototypeWithAttributeList() {
     });
   }
 }
-},{}],3:[function(require,module,exports) {
+},{}],6:[function(require,module,exports) {
 'use strict';
 
 var _index = require('../lib/index.js');
@@ -250,7 +252,7 @@ var observer = new MutationObserver(callback);
 
 // Start observing the target node for configured mutations
 observer.observe(targetNode, config);
-},{"../lib/index.js":5}],7:[function(require,module,exports) {
+},{"../lib/index.js":9}],13:[function(require,module,exports) {
 
 var global = (1, eval)('this');
 var OldModule = module.bundle.Module;
@@ -270,7 +272,7 @@ module.bundle.Module = Module;
 
 if (!module.bundle.parent && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
-  var ws = new WebSocket('ws://' + hostname + ':' + '55371' + '/');
+  var ws = new WebSocket('ws://' + hostname + ':' + '57141' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -371,5 +373,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.require, id);
   });
 }
-},{}]},{},[7,3])
+},{}]},{},[13,6])
 //# sourceMappingURL=/dist/c8138a811a7d2fd667e4faf396485fb5.map
