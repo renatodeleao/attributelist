@@ -6,6 +6,7 @@
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
 
+// eslint-disable-next-line no-global-assign
 require = (function (modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
   var previousRequire = typeof require === "function" && require;
@@ -74,19 +75,23 @@ require = (function (modules, cache, entry) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.$al = $al;
+exports.$attributeList = $attributeList;
+exports.dangerouslyExtendElementPrototypeWithAttributeList = dangerouslyExtendElementPrototypeWithAttributeList;
+/*
+ * @name AttributeList
+ * @description manipulated attributes with a classList like API
+ *
+ * @param {HTMLElement} el — target element
+ * @param {String} attributeName — The name of the attribute that will get superpowers
+ */
 class AttributeList {
-  static toCamelCase(str) {
-    return str.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2, offset) => p2 ? p2.toUpperCase() : p1.toLowerCase());
-  }
-
-  static parseAttributeTokenList(tlist, functionName) {
+  static parseAttributeFakeTokenList(tlist, functionName) {
     let parsed = [];
     for (let i = 0; i < tlist.length; i++) {
       var attr = tlist[i];
 
       if (attr.split(' ').length > 1) {
-        throw new Error("Failed to execute '" + functionName + "' on 'TokenList': The token provided ('" + attr + "') contains HTML space characters, which are not valid in tokens.');");
+        throw new Error("Failed to execute '" + functionName + "' on 'FakeTokenList': The token provided ('" + attr + "') contains HTML space characters, which are not valid in tokens.');");
       } else {
         parsed.push(attr);
       }
@@ -101,10 +106,12 @@ class AttributeList {
     this.tokenList = this.el.getAttribute(attributeName).split(" ").filter(t => t !== "");
 
     this.add = this.add.bind(this);
+    this.remove = this.remove.bind(this);
+    this.toggle = this.toggle.bind(this);
   }
 
   add(attr) {
-    var parsed = AttributeList.parseAttributeTokenList(arguments, 'add');
+    var parsed = AttributeList.parseAttributeFakeTokenList(arguments, 'add');
     parsed.forEach(token => {
       if (this.tokenList.indexOf(token) === -1) {
         this.tokenList.push(token);
@@ -113,32 +120,138 @@ class AttributeList {
 
     this.el.setAttribute(this.attributeName, this.tokenList.join(" "));
   }
-}
 
-function $al(el) {
-  function toCamelCase(str) {
-    return str.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2, offset) => p2 ? p2.toUpperCase() : p1.toLowerCase());
+  remove(attr) {
+    var parsed = AttributeList.parseAttributeFakeTokenList(arguments, 'add');
+    parsed.forEach(token => {
+      let pos = this.tokenList.indexOf(token);
+      if (pos > -1) {
+        this.tokenList.splice(pos, 1);
+      }
+    });
+
+    this.el.setAttribute(this.attributeName, this.tokenList.join(" "));
   }
 
-  var al = el.getAttributeNames();
-  let obj = {};
+  toggle(attr) {
+    let pos = this.tokenList.indexOf(attr);
+    if (pos > -1) {
+      this.remove(attr);
+    } else {
+      this.add(attr);
+    }
+    this.el.setAttribute(this.attributeName, this.tokenList.join(" "));
+  }
+}
 
-  al.forEach(attr => {
-    var camelCased = toCamelCase(attr);
-    obj[camelCased] = new AttributeList(el, attr);
-  });
+exports.AttributeList = AttributeList; // Helper
 
-  return obj;
+function toCamelCase(str) {
+  return str.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2, offset) => p2 ? p2.toUpperCase() : p1.toLowerCase());
+}
+
+function getAttributes(el) {
+  return el.getAttributeNames().filter(a => a !== "id" && a !== "class");
+}
+
+/*
+ * @name $attributeList
+ * @description AttributeList Wrapper Mode, se like _loadash or jquery
+ *
+ * @param {HTMLElement|String} el — target element
+ */
+function $attributeList(el) {
+  // Sidebar element query if there's no one, throw error.
+  let _el = 'string' === typeof el ? document.querySelector(el) : el;
+  if ('undefined' === typeof el) throw new Error("There is no specific sidebar element.");
+
+  // todo: should we remove other attributes from manipulation and only leave data-attributes??
+  let al = getAttributes(el);
+  let alObj = {};
+
+  if (al.length > 0) {
+    al.forEach(attr => {
+      let camelCased = toCamelCase(attr.replace("data-", ""));
+      alObj[camelCased] = new AttributeList(_el, attr);
+    });
+  }
+
+  return alObj;
+}
+
+/*
+ * [DANGEROUS] USE at your own Risk
+ *
+ * @function dangerouslyExtendElementPrototype
+ *
+ * @description Dangerous because i'm a designer and i don't have
+ * enough javaScript (programming) nerdery to fully
+ * understand how bad is what i'm doing here
+ */
+function dangerouslyExtendElementPrototypeWithAttributeList() {
+  if (!Element.prototype.attributeList) {
+    Object.defineProperty(Element.prototype, "attributeList", {
+      get: function () {
+        let al = getAttributes(this);
+        let alObj = {};
+
+        if (al.length > 0) {
+          al.forEach(attr => {
+            let camelCased = toCamelCase(attr.replace("data-", ""));
+            alObj[camelCased] = new AttributeList(this, attr);
+          });
+        }
+
+        Object.defineProperty(this, "attributeList", {
+          value: alObj
+        });
+        return this.attributeList;
+      },
+      configurable: true,
+      writeable: false
+    });
+  }
 }
 },{}],3:[function(require,module,exports) {
-"use strict";
+'use strict';
 
-var _index = require("../lib/index.js");
+var _index = require('../lib/index.js');
 
 console.log("hello world");
 
-window.$al = _index.$al;
-},{"../lib/index.js":5}],0:[function(require,module,exports) {
+window.$al = _index.$attributeList;
+
+(0, _index.dangerouslyExtendElementPrototypeWithAttributeList)();
+
+function toggleClass() {
+    console.log('toggled');
+}
+// Select the node that will be observed for mutations
+var targetNode = document.querySelector('.js-observe');
+
+var instance = new _index.AttributeList(targetNode);
+// Options for the observer (which mutations to observe)
+var config = { attributes: true, childList: true };
+
+// Callback function to execute when mutations are observed
+var callback = function (mutationsList) {
+    for (var mutation of mutationsList) {
+        if (mutation.type == 'childList') {
+            console.log('A child node has been added or removed.');
+        } else if (mutation.type == 'attributes') {
+            console.log('The ' + mutation.attributeName + ' attribute was modified.');
+            toggleClass();
+        }
+    }
+};
+
+// Create an observer instance linked to the callback function
+var observer = new MutationObserver(callback);
+
+// Start observing the target node for configured mutations
+observer.observe(targetNode, config);
+},{"../lib/index.js":5}],7:[function(require,module,exports) {
+
 var global = (1, eval)('this');
 var OldModule = module.bundle.Module;
 function Module() {
@@ -156,8 +269,9 @@ function Module() {
 module.bundle.Module = Module;
 
 if (!module.bundle.parent && typeof WebSocket !== 'undefined') {
-  var ws = new WebSocket('ws://localhost:58586/');
-  ws.onmessage = function(event) {
+  var hostname = '' || location.hostname;
+  var ws = new WebSocket('ws://' + hostname + ':' + '55371' + '/');
+  ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
     if (data.type === 'update') {
@@ -175,8 +289,8 @@ if (!module.bundle.parent && typeof WebSocket !== 'undefined') {
     if (data.type === 'reload') {
       ws.close();
       ws.onclose = function () {
-        window.location.reload();
-      }
+        location.reload();
+      };
     }
 
     if (data.type === 'error-resolved') {
@@ -201,7 +315,7 @@ function getParents(bundle, id) {
   for (k in modules) {
     for (d in modules[k][1]) {
       dep = modules[k][1][d];
-      if (dep === id || (Array.isArray(dep) && dep[dep.length - 1] === id)) {
+      if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) {
         parents.push(+k);
       }
     }
@@ -254,7 +368,8 @@ function hmrAccept(bundle, id) {
   }
 
   return getParents(global.require, id).some(function (id) {
-    return hmrAccept(global.require, id)
+    return hmrAccept(global.require, id);
   });
 }
-},{}]},{},[0,3])
+},{}]},{},[7,3])
+//# sourceMappingURL=/dist/c8138a811a7d2fd667e4faf396485fb5.map

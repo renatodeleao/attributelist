@@ -1,3 +1,35 @@
 body{
-  background: red;
+  background: white;
+  margin: 0;
+  font-family: system-ui;
+}
+
+#app{
+  width: 600px;
+  margin: 0 auto;
+  max-width: 100%;
+}
+.debugger{
+  background: whitesmoke;
+  height: 100px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  &:before{
+    content: "data-first-attribute: " attr(data-first-attribute);
+    display: block;
+    font-family: monospace;
+  }
+
+  &:after{
+    content: "data-last-attribute: " attr(data-last-attribute);
+    display: block;
+    font-family: monospace;
+  }
+
+  &.changed{
+    background-color: tomato;
+  }
 }
